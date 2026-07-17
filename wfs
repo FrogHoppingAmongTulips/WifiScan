@@ -1,0 +1,46 @@
+#!/bin/bash
+# wfs — WiFi Scanner (terminal)
+#
+#   wfs              launch the interactive network scanner (default)
+#   wfs --scan       scan once, print the table  (add --json for JSON)
+#   wfs --sec        security audit              (add --json)
+#   wfs --watch      monitor the network
+#   wfs --history    device history             (add --json)
+#   wfs --export F   scan and write F (.json/.csv)
+#   wfs help         show this help
+#
+# Resolves its own location, so it works whether called directly or via a
+# symlink in PATH (e.g. /opt/homebrew/bin/wfs).
+
+set -e
+
+# Follow symlinks to find the real project root.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+
+PY="$(command -v python3)"
+
+case "${1:-cli}" in
+  cli|"")
+    cd "$ROOT"
+    exec "$PY" wifi_cli.py
+    ;;
+  help)
+    # print the header comment block (line 2 through the first blank line)
+    sed -n '2,/^$/p' "$SOURCE" | sed 's/^# \{0,1\}//'
+    ;;
+  -*)
+    # flags (--scan, --sec, --watch, --history, --export, --json, --help) → Python
+    cd "$ROOT"
+    exec "$PY" wifi_cli.py "$@"
+    ;;
+  *)
+    echo "wfs: unknown command '$1' (try: wfs help)" >&2
+    exit 1
+    ;;
+esac

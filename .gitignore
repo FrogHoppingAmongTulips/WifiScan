@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+
+# Runtime cache / logs (written to ~/.wifi-scanner)
+.wifi-scanner/
+
+# OS
+.DS_Store
+
+# Accidental scan export with real device data
+/F
