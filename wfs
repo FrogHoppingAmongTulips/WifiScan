@@ -2,6 +2,8 @@
 # wfs — WiFi Scanner (terminal)
 #
 #   wfs              launch the interactive network scanner (default)
+#   wfs web          open the same data in a browser (prints the link)
+#   wfs out          outgoing connections: app -> server (add --geo to look up)
 #   wfs --scan       scan once, print the table  (add --json for JSON)
 #   wfs --sec        security audit              (add --json)
 #   wfs --watch      monitor the network
@@ -29,6 +31,17 @@ case "${1:-cli}" in
   cli|"")
     cd "$ROOT"
     exec "$PY" wifi_cli.py
+    ;;
+  web)
+    # Печатает ссылку и держит сервер, пока не нажмут Ctrl+C.
+    cd "$ROOT"
+    shift
+    exec "$PY" web.py "$@"
+    ;;
+  out)
+    cd "$ROOT"
+    shift
+    exec "$PY" netmon.py "$@"
     ;;
   help)
     # print the header comment block (line 2 through the first blank line)
