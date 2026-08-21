@@ -2,7 +2,9 @@
 # wfs — WiFi Scanner (terminal)
 #
 #   wfs              launch the interactive network scanner (default)
-#   wfs web          open the same data in a browser (prints the link)
+#   wfs web          open the same data in a browser (opens it, prints the link)
+#   wfs update       reinstall the latest version
+#   wfs uninstall    remove wfs (history and caches are left in place)
 #   wfs out          outgoing connections: app -> server (add --geo to look up)
 #   wfs --scan       scan once, print the table  (add --json for JSON)
 #   wfs --sec        security audit              (add --json)
@@ -42,6 +44,16 @@ case "${1:-cli}" in
     cd "$ROOT"
     shift
     exec "$PY" netmon.py "$@"
+    ;;
+  update)
+    # Тот же установщик, что и при первой установке: одна дорога, одно
+    # поведение, нечему разойтись.
+    exec curl -fsSL "https://raw.githubusercontent.com/${WFS_REPO:-FrogHoppingAmongTulips/WifiScan}/main/scripts/install.sh" \
+      | bash
+    ;;
+  uninstall|remove)
+    exec curl -fsSL "https://raw.githubusercontent.com/${WFS_REPO:-FrogHoppingAmongTulips/WifiScan}/main/scripts/install.sh" \
+      | bash -s uninstall
     ;;
   help)
     # print the header comment block (line 2 through the first blank line)

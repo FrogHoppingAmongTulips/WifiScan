@@ -189,7 +189,7 @@ def free_port(preferred=8787):
     return 0
 
 
-def serve(port=None, open_browser=False):
+def serve(port=None, open_browser=True):
     port = port or free_port()
     srv = ThreadingHTTPServer(('127.0.0.1', port), Handler)
     url = f'http://127.0.0.1:{port}'
@@ -205,4 +205,7 @@ def serve(port=None, open_browser=False):
 
 
 if __name__ == '__main__':
-    serve()
+    import sys
+    # --no-open — для случая, когда команду запускают не с того компьютера,
+    # за которым сидят: по ссылке всё равно можно зайти вручную.
+    serve(open_browser='--no-open' not in sys.argv)
