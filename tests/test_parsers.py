@@ -44,7 +44,7 @@ def test_parse_response_txt_model():
 
 def test_is_random_mac():
     assert wifi_cli.is_random_mac('AE:E6:91:ED:5B:73') is True   # 2nd bit of 1st byte set
-    assert wifi_cli.is_random_mac('38:6B:1C:57:98:45') is False
+    assert wifi_cli.is_random_mac('38:6B:1C:00:00:01') is False
     assert wifi_cli.is_random_mac('') is False
 
 
@@ -55,16 +55,16 @@ def test_get_device_type():
 
 
 def test_lookup_vendor_builtin():
-    assert wifi_cli.lookup_vendor('38:6B:1C:AA:BB:CC') == 'Arcadyan'
+    assert wifi_cli.lookup_vendor('38:6B:1C:00:00:02') == 'Arcadyan'
     assert wifi_cli.lookup_vendor('AE:E6:91:00:00:00') == 'Private/Randomized'
 
 
 def test_parse_arp_output():
-    text = ("? (192.168.1.1) at 38:6b:1c:57:98:45 on en0 ifscope [ethernet]\n"
+    text = ("? (192.168.1.1) at 38:6b:1c:00:00:01 on en0 ifscope [ethernet]\n"
             "? (192.168.1.255) at ff:ff:ff:ff:ff:ff on en0 [ethernet]\n"
             "host.local (192.168.1.50) at aa:bb:cc:dd:ee:ff on en0 [ethernet]")
     out = wifi_cli.parse_arp_output(text)
-    assert out['192.168.1.1']['mac'] == '38:6B:1C:57:98:45'
+    assert out['192.168.1.1']['mac'] == '38:6B:1C:00:00:01'
     assert '192.168.1.255' not in out                 # broadcast dropped
     assert out['192.168.1.50']['hostname'] == 'host.local'
     assert out['192.168.1.1']['hostname'] == ''        # '?' → empty
