@@ -1,13 +1,7 @@
-# WFS
+# wfs
 
-Две стороны одной картины: кто сидит в твоей сети и куда твоя машина сама
-шлёт данные. Из терминала или в браузере. **Ноль зависимостей.**
-
-```
-wfs           разбор сети: кто подключён, что за устройства, что открыто
-wfs out       исходящие соединения: программа → сервер → страна
-wfs web       то же самое в браузере, печатает ссылку
-```
+Показывает, кто подключён к твоей сети и куда твой компьютер отправляет данные.
+Терминал или браузер. macOS. Нужен только `python3`, сторонних библиотек нет.
 
 ## Установка
 
@@ -15,114 +9,91 @@ wfs web       то же самое в браузере, печатает ссы�
 curl -fsSL https://raw.githubusercontent.com/FrogHoppingAmongTulips/WifiScan/main/scripts/install.sh | bash
 ```
 
-Без root: файлы в `~/.local/share/wfs`, запуск ссылкой из каталога, который уже
-есть в PATH. Нужен только `python3` — сторонних библиотек нет.
+## Обновление
 
 ```
-wfs update      обновить до свежей версии
-wfs uninstall   удалить (история устройств и кэши остаются)
+wfs update
 ```
 
-## Веб-вид
-
-`wfs web` поднимает сервер на петле, открывает браузер и печатает ссылку —
-если запускаете не за тем компьютером, за которым сидите, `wfs web --no-open`
-даст только ссылку. Страница чёрная, текст
-белый, список строк: нажал — развернулось, посмотрел — свернул. Наружу не
-смотрит: ни шрифтов, ни скриптов со стороны.
-
-Слушает только `127.0.0.1`. Сеть, за которой смотрит wfs, — не та сеть, в
-которую его стоит выставлять.
-
-## Куда уходят данные
-
-`wfs out` показывает исходящие соединения. Страна и владелец адреса **не
-запрашиваются по умолчанию**: чтобы их узнать, список твоих адресов пришлось бы
-отправить стороннему сервису — ровно то, от чего эта команда и защищает.
-Нужно — `wfs out --geo`.
-
-## What it does
-
-- **Multi-method discovery** — TCP + ICMP ping sweep, ARP, `nmap`, mDNS/Bonjour,
-  SSDP/UPnP — all run **in parallel**. Works without root.
-- **Device identification** — OUI vendor lookup (auto-downloaded on first run),
-  port fingerprinting, service banners, **OS hint from TTL** (no sudo),
-  **NetBIOS names** for Windows hosts, mDNS/TXT models, randomized-MAC detection.
-- **History** — local SQLite (`~/.wifi-scanner/history.db`) remembers
-  first/last seen and how many times each device appeared, across runs.
-- **Security audit** — per-device risk score (Telnet/FTP/VNC/RDP/SMB, router
-  admin over plain HTTP…), **ARP-spoof detection** (gateway-MAC change),
-  **newly-opened-port** alerts vs last audit, brand-new-device = possible
-  intruder. Save reports as text or JSON.
-- **Wi-Fi & network audit** — signal/SNR, channel, security, PHY, co-channel
-  interference, gateway/ISP, router posture, macOS speed test.
-- **Scriptable** — non-interactive flags with JSON/CSV output for cron/pipes.
-- **Live tools** — `watch` (NEW vs returning devices), `uptime`, `traffic`.
-
-## Files
+## Удаление
 
 ```
-wifi_cli.py   ← interactive UI + discovery engine + CLI entry
-identify.py   ← mDNS / SSDP / fingerprint / banners / TTL / NetBIOS
-store.py      ← SQLite history, labels, notes, gateway-MAC & port snapshots
-security.py   ← risk scoring, ARP-spoof, port-delta, text/JSON reports
-config.py     ← ~/.wifi-scanner/config.json (interface, timeouts, auto-oui)
-exporter.py   ← scan/history → JSON & CSV
-tests/        ← pure unit tests (no network)
+wfs uninstall
 ```
 
-## Run
+История устройств и кэши остаются. Путь к ним печатается при удалении.
 
-Interactive:
+---
 
-```bash
-wfs                   # or: python3 wifi_cli.py
+## Команды
+
+```
+wfs              список устройств в сети, дальше меню
+wfs out          исходящие соединения: программа → сервер
+wfs web          то же в браузере, открывает вкладку
+wfs help         все команды
 ```
 
-Non-interactive (for scripts / cron):
+Для скриптов, без меню:
 
-```bash
-wfs --scan            # scan, print table      (--json for JSON)
-wfs --sec             # security audit          (--json)
-wfs --history         # device history          (--json)
-wfs --export out.csv  # scan → file (.json/.csv)
-wfs --watch           # monitor (Ctrl-C to stop)
+```
+wfs --scan       список устройств        (--json — в JSON)
+wfs --sec        проверка безопасности   (--json)
+wfs --history    что видели раньше       (--json)
+wfs --watch      следить за появлением новых
+wfs --export f   записать в файл .json или .csv
 ```
 
-The interactive UI is a small REPL — a `wfs>` prompt, no wall-of-text reprints.
-Type `?` for the command list, `ls` to show the device table (scans on first
-use), a device number for details, then commands: `r`/`rr` rescan · `sec` ·
-`report` · `quality` · `trends` · `history` · `export F` · `wifi` · `diag` ·
-`watch` · `uptime` · `router` · `traffic` · `oui` · `q`. Commands that don't
-need the device list (`wifi`, `quality`, `diag`, …) run instantly without a scan.
+## Что показывает
 
-Non-interactive flags: `--scan --sec --report --quality --trends --watch
---history --diag --export FILE --json --debug`.
+**Устройства в сети.** IP, MAC, производитель, имя, тип, открытые порты,
+предположение об операционной системе. Список собирается несколькими способами
+сразу — ping, ARP, nmap, mDNS, SSDP, — поэтому находит и то, что отвечает не на
+всё. Права администратора не нужны.
 
-## Config
+**Что нового.** Устройства запоминаются между запусками: видно, когда каждое
+появилось впервые, когда в последний раз и сколько раз всего. Новое устройство
+в списке — повод посмотреть, чьё оно.
 
-`~/.wifi-scanner/config.json` (created on first run): `interface`, `auto_oui`,
-`scan_workers`, `port_timeout`, `ping_timeout_ms`, `mdns_timeout`,
-`ssdp_timeout`.
+**Опасное.** Открытый Telnet, FTP, VNC, RDP, SMB; вход в роутер по HTTP без
+шифрования; порты, которых не было в прошлый раз; подмена MAC-адреса шлюза.
+Каждому устройству ставится оценка риска.
 
-## Install (optional)
+**Качество сети.** Уровень сигнала, канал и помехи от соседей, потери и задержки
+до шлюза и до интернета, состояние DNS.
 
-```bash
-pipx install .        # provides the `wfs` command via pyproject.toml
+**Исходящие соединения.** Какая программа с каким сервером соединена и по какому
+порту. Необычный порт помечается.
+
+## Про страну и владельца адреса
+
+Определить, кому принадлежит сервер, можно только спросив у стороннего сервиса —
+то есть отправив ему список адресов, с которыми ты соединяешься. По умолчанию
+этого не происходит: показывается имя из обратного DNS. Нужно точнее:
+
+```
+wfs out --geo
 ```
 
-Or just symlink `./wfs` into your PATH (already set up at `/opt/homebrew/bin/wfs`).
+## Браузер
 
-## Test
+`wfs web` поднимает сервер на `127.0.0.1`, открывает вкладку и печатает ссылку.
+Наружу страница не смотрит: ни шрифтов, ни скриптов со стороны. Слушает только
+локальный адрес — снаружи не открыть.
 
-```bash
-python3 tests/test_parsers.py     # no pytest needed
-pytest                            # if installed
+`wfs web --no-open` — только напечатать ссылку, вкладку не открывать.
+
+## Где лежат данные
+
+```
+~/.wifi-scanner/    история устройств, заметки, снимки портов
+~/.net-monitor/     кэш адресов и списки вредоносных IP
+~/.local/share/wfs  сам инструмент
 ```
 
-## Notes
+## Разработка
 
-- **No external dependencies** — Python 3 stdlib only (`sqlite3` included).
-- Tuned for **macOS**; discovery works cross-platform, the Wi-Fi audit is macOS-specific.
-- `nmap` optional but improves results: `brew install nmap`.
-- All data stays local in `~/.wifi-scanner/`.
+```
+python3 tests/test_parsers.py   разбор вывода системных команд
+python3 tests/test_merged.py    исходящие соединения и веб
+```
